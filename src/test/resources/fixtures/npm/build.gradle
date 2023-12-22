@@ -7,7 +7,7 @@ plugins {
 def changeInputs = isPropertyEnabled("changeInputs")
 
 node {
-    npmVersion = "9.6.7"
+    npmVersion = "10.2.3"
     download = true
     workDir = file('build/node')
 }

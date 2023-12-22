@@ -66,18 +66,31 @@ class NodePlugin : Plugin<Project> {
     }
 
     private fun addPlatform(extension: NodeExtension) {
+        val name = System.getProperty("os.name")
         val uname = {
+            var executable = "uname"
+            var args = listOf("-m")
+
+            if (name.toLowerCase().contains("windows")) {
+                executable = "powershell.exe"
+                args = listOf(
+                    "-Command",
+                    "& {Get-CimInstance Win32_OperatingSystem | " +
+                        "Select-Object -ExpandProperty OSArchitecture}"
+                )
+            }
+
             if (GradleVersion.current() >= GradleVersion.version("7.5")) {
                 val cmd = project.providers.exec {
-                    this.executable = "uname"
-                    this.args = listOf("-m")
+                    this.executable = executable
+                    this.args = args
                 }
                 cmd.standardOutput.asText.get().trim()
             } else {
                 val out = ByteArrayOutputStream()
                 val cmd = project.exec {
-                    this.executable = "uname"
-                    this.args = listOf("-m")
+                    this.executable = executable
+                    this.args = args
                     this.standardOutput = out
                 }
 
@@ -85,7 +98,6 @@ class NodePlugin : Plugin<Project> {
                 out.toString().trim()
             }
         }
-        val name = System.getProperty("os.name")
         val arch = System.getProperty("os.arch")
         val platform = parsePlatform(name, arch, uname)
         extension.resolvedPlatform.set(platform)

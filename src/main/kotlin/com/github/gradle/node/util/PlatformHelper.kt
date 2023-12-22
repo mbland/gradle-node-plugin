@@ -18,13 +18,16 @@ fun parseOsName(name: String): String {
 }
 
 fun parseOsArch(arch: String, uname: Callable<String>): String {
+    val isArm64 = { it: String ->
+        it == "armv8l" || it == "aarch64" || it == "ARM 64-bit Processor"
+    }
     return when {
         /*
          * As Java just returns "arm" on all ARM variants, we need a system call to determine the exact arch. Unfortunately some JVMs say aarch32/64, so we need an additional
          * conditional. Additionally, the node binaries for 'armv8l' are called 'arm64', so we need to distinguish here.
          */
         arch == "arm" || arch.startsWith("aarch") -> uname.call()
-            .mapIf({ it == "armv8l" || it == "aarch64" }) { "arm64" }
+            .mapIf(isArm64) { "arm64" }
             .mapIf({ it == "x86_64" }) {"x64"}
         arch == "ppc64le" -> "ppc64le"
         arch == "s390x" -> "s390x"
